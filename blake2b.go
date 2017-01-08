@@ -5,8 +5,8 @@
 // worldwide. This software is distributed without any warranty.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-// Package blake2b implements BLAKE2b cryptographic hash function.
-package blake2b
+// Package blake2xb implements BLAKE2b and BLAKE2Xb cryptographic hash functions.
+package blake2xb
 
 import (
 	"encoding/binary"
@@ -59,7 +59,8 @@ type Tree struct {
 	Fanout        uint8  // fanout
 	MaxDepth      uint8  // maximal depth
 	LeafSize      uint32 // leaf maximal byte length (0 for unlimited)
-	NodeOffset    uint64 // node offset (0 for first, leftmost or leaf)
+	NodeOffset    uint32 // node offset (0 for first, leftmost or leaf)
+	XOFLength     uint32 // XOF digest length
 	NodeDepth     uint8  // node depth (0 for leaves)
 	InnerHashSize uint8  // inner hash byte length
 	IsLastNode    bool   // indicates processing of the last node of layer
@@ -85,7 +86,8 @@ func verifyConfig(c *Config) error {
 		// Smaller personalization is okay: it will be padded with zeros.
 		return errors.New("personalization is too large")
 	}
-	if c.Tree != nil {
+	// Check tree constraints only if it's not XOF
+	if c.Tree != nil && c.Tree.XOFLength == 0 {
 		if c.Tree.Fanout == 1 {
 			return errors.New("fanout of 1 is not allowed in tree mode")
 		}
@@ -136,7 +138,8 @@ func (d *digest) initialize(c *Config) {
 		p[2] = c.Tree.Fanout
 		p[3] = c.Tree.MaxDepth
 		binary.LittleEndian.PutUint32(p[4:], c.Tree.LeafSize)
-		binary.LittleEndian.PutUint64(p[8:], c.Tree.NodeOffset)
+		binary.LittleEndian.PutUint32(p[8:], c.Tree.NodeOffset)
+		binary.LittleEndian.PutUint32(p[12:], c.Tree.XOFLength)
 		p[16] = c.Tree.NodeDepth
 		p[17] = c.Tree.InnerHashSize
 	} else {
