@@ -1,11 +1,10 @@
-// Written in 2012 by Dmitry Chestnykh.
+// blake2b.go - implementation of BLAKE2b.
 //
-// To the extent possible under law, the author have dedicated all copyright
-// and related and neighboring rights to this software to the public domain
-// worldwide. This software is distributed without any warranty.
-// http://creativecommons.org/publicdomain/zero/1.0/
+// To the extent possible under law, Dmitry Chestnykh and Ivan Markin waived
+// all copyright and related or neighboring rights to this module of blake2xb,
+// using the creative commons "cc0" public domain dedication. See LICENSE or
+// <http://creativecommons.org/publicdomain/zero/1.0/> for full details.
 
-// Package blake2xb implements BLAKE2b and BLAKE2Xb cryptographic hash functions.
 package blake2xb
 
 import (

@@ -1,9 +1,9 @@
-// Written in 2012 by Dmitry Chestnykh.
+// blake2xb_test.go - tests for the implementation of BLAKE2Xb.
 //
-// To the extent possible under law, the author have dedicated all copyright
-// and related and neighboring rights to this software to the public domain
-// worldwide. This software is distributed without any warranty.
-// http://creativecommons.org/publicdomain/zero/1.0/
+// To the extent possible under law, Ivan Markin waived all copyright
+// and related or neighboring rights to this module of blake2xb, using the creative
+// commons "cc0" public domain dedication. See LICENSE or
+// <http://creativecommons.org/publicdomain/zero/1.0/> for full details.
 
 package blake2xb
 
