@@ -1,17 +1,17 @@
 package blake2xb
 
-import(
+import (
+	"bytes"
 	"errors"
 	"hash"
-	"bytes"
 )
 
 type BLAKE2xb struct {
-	config	*Config  // current config
-	rootHash  hash.Hash // Input hash instance
-	h0	[]byte  // H0, tree root
-	hbuf	bytes.Buffer // Working output buffer
-	chainSize uint32 // Number of B2 blocks in XOF chain
+	config    *Config      // current config
+	rootHash  hash.Hash    // Input hash instance
+	h0        []byte       // H0, tree root
+	hbuf      bytes.Buffer // Working output buffer
+	chainSize uint32       // Number of B2 blocks in XOF chain
 }
 
 func (x *BLAKE2xb) Write(p []byte) (written int, err error) {

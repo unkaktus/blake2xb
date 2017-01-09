@@ -8,19 +8,19 @@
 package blake2xb
 
 import (
-	"fmt"
-	"testing"
-	"os"
-	"encoding/json"
 	"encoding/hex"
-	"reflect"
+	"encoding/json"
+	"fmt"
 	"hash"
+	"os"
+	"reflect"
+	"testing"
 )
 
 type testVector struct {
-	In	string
-	Key	string
-	Out	string
+	In  string
+	Key string
+	Out string
 }
 
 func TestSum(t *testing.T) {
