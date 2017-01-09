@@ -65,6 +65,15 @@ func (x *BLAKE2xb) Read(out []byte) (n int, err error) {
 
 }
 
+// Reset resets BLAKE2xb to the initial state.
+func (x *BLAKE2xb) Reset() {
+	x.rootHash.Reset()
+	x.h0 = nil
+	x.hbuf.Reset()
+	x.config.Size = Size
+	x.config.Tree.NodeOffset = 0
+}
+
 // NewXConfig creates default config c for BLAKE2xb with output length of l.
 // If l is 0, maximum output length is used (2^32-1).
 func NewXConfig(l uint32) (c *Config) {
