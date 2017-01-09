@@ -21,6 +21,8 @@ type BLAKE2xb struct {
 	chainSize uint32       // Number of B2 blocks in XOF chain
 }
 
+// Write absorbs data on input. It panics if input is written
+// after output has been read from the XOF (i.e. Read has been called).
 func (x *BLAKE2xb) Write(p []byte) (written int, err error) {
 	if x.h0 != nil {
 		panic("blake2xb: writing after read")
@@ -28,6 +30,8 @@ func (x *BLAKE2xb) Write(p []byte) (written int, err error) {
 	return x.rootHash.Write(p)
 }
 
+// Read reads output of BLAKE2xb XOF. It returns io.EOF if the end
+// of XOF output is reached.
 func (x *BLAKE2xb) Read(out []byte) (n int, err error) {
 	if x.h0 == nil {
 		x.h0 = x.rootHash.Sum(nil)
@@ -61,6 +65,8 @@ func (x *BLAKE2xb) Read(out []byte) (n int, err error) {
 
 }
 
+// NewXConfig creates default config c for BLAKE2xb with output length of l.
+// If l is 0, maximum output length is used (2^32-1).
 func NewXConfig(l uint32) (c *Config) {
 	return &Config{
 		Size: Size,
@@ -68,6 +74,7 @@ func NewXConfig(l uint32) (c *Config) {
 	}
 }
 
+// NewX creates new BLAKE2xb instance using config c.
 func NewX(c *Config) (*BLAKE2xb, error) {
 	x := &BLAKE2xb{}
 	if c == nil {
