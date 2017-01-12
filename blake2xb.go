@@ -91,25 +91,16 @@ func NewX(c *Config) (*BLAKE2xb, error) {
 	x := &BLAKE2xb{}
 	if c == nil {
 		c = NewXConfig(MaxXOFLength)
-	} else {
-		// Override size of underlying hash
-		c.Size = Size
-		// The values below are "as usual".
-		// Set them as in reference to match testvectors.
-		c.Tree.Fanout = 1
-		c.Tree.MaxDepth = 1
-		c.Tree.LeafSize = 0
-		c.Tree.NodeOffset = 0
-		c.Tree.NodeDepth = 0
-		c.Tree.InnerHashSize = 0
+	}
 
-		if c.Tree.XOFLength == 0 {
-			// Set maximum XOF size if it's zero.
-			c.Tree.XOFLength = MaxXOFLength
-		}
-		if err := verifyConfig(c); err != nil {
-			return x, err
-		}
+	if c.Tree.XOFLength == 0 {
+		// Set maximum XOF size if it's zero.
+		c.Tree.XOFLength = MaxXOFLength
+	}
+
+	overrideRootConfig(c)
+	if err := verifyConfig(c); err != nil {
+		return x, err
 	}
 	d, err := New(c)
 	if err != nil {
@@ -119,6 +110,19 @@ func NewX(c *Config) (*BLAKE2xb, error) {
 	x.chainSize = c.Tree.XOFLength / Size
 	x.config = c
 	return x, nil
+}
+
+func overrideRootConfig(c *Config) {
+	// Override size of underlying hash
+	c.Size = Size
+	// The values below are "as usual".
+	// Set them as in reference to match testvectors.
+	c.Tree.Fanout = 1
+	c.Tree.MaxDepth = 1
+	c.Tree.LeafSize = 0
+	c.Tree.NodeOffset = 0
+	c.Tree.NodeDepth = 0
+	c.Tree.InnerHashSize = 0
 }
 
 func setB2Config(c *Config) {
