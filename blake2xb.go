@@ -42,7 +42,7 @@ func (x *BLAKE2xb) Read(out []byte) (n int, err error) {
 		setB2Config(x.config)
 	}
 	dlen := len(out)
-	if dlen > int(x.config.Tree.XOFLength) {
+	if uint32(dlen) > x.config.Tree.XOFLength {
 		return 0, errors.New("blake2xb: destination size is greater than XOF length")
 	}
 	for x.hbuf.Len() < dlen {
