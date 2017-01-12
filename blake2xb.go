@@ -13,6 +13,10 @@ import (
 	"hash"
 )
 
+const (
+	MaxXOFLength = 0xffffffff
+)
+
 type BLAKE2xb struct {
 	config    *Config      // current config
 	rootHash  hash.Hash    // Input hash instance
@@ -78,7 +82,6 @@ func (x *BLAKE2xb) Reset() {
 // If l is 0, maximum output length is used (2^32-1).
 func NewXConfig(l uint32) (c *Config) {
 	return &Config{
-		Size: Size,
 		Tree: &Tree{XOFLength: l},
 	}
 }
@@ -87,7 +90,7 @@ func NewXConfig(l uint32) (c *Config) {
 func NewX(c *Config) (*BLAKE2xb, error) {
 	x := &BLAKE2xb{}
 	if c == nil {
-		c = NewXConfig(0xffffffff)
+		c = NewXConfig(MaxXOFLength)
 	} else {
 		// Override size of underlying hash
 		c.Size = Size
@@ -102,7 +105,7 @@ func NewX(c *Config) (*BLAKE2xb, error) {
 
 		if c.Tree.XOFLength == 0 {
 			// Set maximum XOF size if it's zero.
-			c.Tree.XOFLength = 0xffffffff
+			c.Tree.XOFLength = MaxXOFLength
 		}
 		if err := verifyConfig(c); err != nil {
 			return x, err
