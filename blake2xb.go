@@ -109,7 +109,7 @@ func NewConfig(l uint32) (c *Config) {
 // NewMAC returns a new hash.Hash computing BLAKE2xb prefix-
 // Message Authentication Code of the given size in bytes
 // with the given key (up to 64 bytes in length).
-func NewMAC(outBytes uint32, key []byte) hash.Hash {
+func NewMAC(outBytes uint32, key []byte) XOFHash {
 	cfg := NewConfig(outBytes)
 	cfg.Key = key
 	d, err := NewWithConfig(cfg)
@@ -119,13 +119,13 @@ func NewMAC(outBytes uint32, key []byte) hash.Hash {
 	return d
 }
 
-func New(l uint32) (*BLAKE2xb, error) {
+func New(l uint32) (XOFHash, error) {
 	cfg := NewConfig(l)
 	return NewWithConfig(cfg)
 }
 
 // NewX creates new BLAKE2xb instance using config c.
-func NewWithConfig(c *Config) (*BLAKE2xb, error) {
+func NewWithConfig(c *Config) (XOFHash, error) {
 	x := &BLAKE2xb{}
 	if c == nil {
 		c = NewConfig(maxXOFLength)
