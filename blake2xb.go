@@ -11,10 +11,11 @@ import (
 	"bytes"
 	"errors"
 	"hash"
+	"io"
 )
 
 const (
-	MaxXOFLength = 0xffffffff
+	maxXOFLength = 0xffffffff
 )
 
 type BLAKE2xb struct {
@@ -23,6 +24,22 @@ type BLAKE2xb struct {
 	h0        []byte       // H0, tree root
 	hbuf      bytes.Buffer // Working output buffer
 	chainSize uint32       // Number of B2 blocks in XOF chain
+}
+
+// Size returns the digest size in bytes.
+func (b *BLAKE2xb) Size() int { return int(b.config.Tree.XOFLength) }
+
+// BlockSize returns the algorithm block size in bytes.
+func (b *BLAKE2xb) BlockSize() int { return BlockSize }
+
+// Sum returns the calculated checksum.
+func (b *BLAKE2xb) Sum(in []byte) []byte {
+	hash := make([]byte, b.Size())
+	_, err := io.ReadFull(b, hash)
+	if err != nil {
+		panic(err.Error())
+	}
+	return append(in, hash[:b.Size()]...)
 }
 
 // Write absorbs data on input. It panics if input is written
@@ -50,7 +67,7 @@ func (x *BLAKE2xb) Read(out []byte) (n int, err error) {
 		if x.config.Tree.NodeOffset == x.chainSize {
 			x.config.Size = uint8(x.config.Tree.XOFLength % Size)
 		}
-		b, err := New(x.config)
+		b, err := newBlake2b(x.config)
 		if err != nil {
 			return 0, err
 		}
@@ -78,31 +95,52 @@ func (x *BLAKE2xb) Reset() {
 	x.config.Tree.NodeOffset = 0
 }
 
-// NewXConfig creates default config c for BLAKE2xb with output length of l.
+// NewConfig creates default config c for BLAKE2xb with output length of l.
 // If l is 0, maximum output length is used (2^32-1).
-func NewXConfig(l uint32) (c *Config) {
+func NewConfig(l uint32) (c *Config) {
+	if l == 0 {
+		l = maxXOFLength
+	}
 	return &Config{
 		Tree: &Tree{XOFLength: l},
 	}
 }
 
+// NewMAC returns a new hash.Hash computing BLAKE2xb prefix-
+// Message Authentication Code of the given size in bytes
+// with the given key (up to 64 bytes in length).
+func NewMAC(outBytes uint32, key []byte) hash.Hash {
+	cfg := NewConfig(outBytes)
+	cfg.Key = key
+	d, err := NewWithConfig(cfg)
+	if err != nil {
+		panic(err.Error())
+	}
+	return d
+}
+
+func New(l uint32) (*BLAKE2xb, error) {
+	cfg := NewConfig(l)
+	return NewWithConfig(cfg)
+}
+
 // NewX creates new BLAKE2xb instance using config c.
-func NewX(c *Config) (*BLAKE2xb, error) {
+func NewWithConfig(c *Config) (*BLAKE2xb, error) {
 	x := &BLAKE2xb{}
 	if c == nil {
-		c = NewXConfig(MaxXOFLength)
+		c = NewConfig(maxXOFLength)
 	}
 
 	if c.Tree.XOFLength == 0 {
 		// Set maximum XOF size if it's zero.
-		c.Tree.XOFLength = MaxXOFLength
+		c.Tree.XOFLength = maxXOFLength
 	}
 
 	overrideRootConfig(c)
 	if err := verifyConfig(c); err != nil {
 		return x, err
 	}
-	d, err := New(c)
+	d, err := newBlake2b(c)
 	if err != nil {
 		return x, err
 	}

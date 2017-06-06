@@ -65,10 +65,14 @@ type Tree struct {
 	IsLastNode    bool   // indicates processing of the last node of layer
 }
 
-var (
-	defaultConfig = &Config{Size: Size}
-	config256     = &Config{Size: 32}
-)
+func newBlake2b(c *Config) (hash.Hash, error) {
+	if err := verifyConfig(c); err != nil {
+		return nil, err
+	}
+	d := new(digest)
+	d.initialize(c)
+	return d, nil
+}
 
 func verifyConfig(c *Config) error {
 	if c.Size > Size {
@@ -98,26 +102,6 @@ func verifyConfig(c *Config) error {
 		}
 	}
 	return nil
-}
-
-// New returns a new hash.Hash configured with the given Config.
-// Config can be nil, in which case the default one is used, calculating 64-byte digest.
-// Returns non-nil error if Config contains invalid parameters.
-func New(c *Config) (hash.Hash, error) {
-	if c == nil {
-		c = defaultConfig
-	} else {
-		if c.Size == 0 {
-			// Set default size if it's zero.
-			c.Size = Size
-		}
-		if err := verifyConfig(c); err != nil {
-			return nil, err
-		}
-	}
-	d := new(digest)
-	d.initialize(c)
-	return d, nil
 }
 
 // initialize initializes digest with the given
@@ -161,31 +145,6 @@ func (d *digest) initialize(c *Config) {
 	}
 	// Save a copy of initialized state.
 	copy(d.ih[:], d.h[:])
-}
-
-// New512 returns a new hash.Hash computing the BLAKE2b 64-byte checksum.
-func New512() hash.Hash {
-	d := new(digest)
-	d.initialize(defaultConfig)
-	return d
-}
-
-// New256 returns a new hash.Hash computing the BLAKE2b 32-byte checksum.
-func New256() hash.Hash {
-	d := new(digest)
-	d.initialize(config256)
-	return d
-}
-
-// NewMAC returns a new hash.Hash computing BLAKE2b prefix-
-// Message Authentication Code of the given size in bytes
-// (up to 64) with the given key (up to 64 bytes in length).
-func NewMAC(outBytes uint8, key []byte) hash.Hash {
-	d, err := New(&Config{Size: outBytes, Key: key})
-	if err != nil {
-		panic(err.Error())
-	}
-	return d
 }
 
 // Reset resets the state of digest to the initial state
@@ -280,22 +239,4 @@ func (d *digest) checkSum() [Size]byte {
 		j += 8
 	}
 	return out
-}
-
-// Sum512 returns a 64-byte BLAKE2b hash of data.
-func Sum512(data []byte) [64]byte {
-	var d digest
-	d.initialize(defaultConfig)
-	d.Write(data)
-	return d.checkSum()
-}
-
-// Sum256 returns a 32-byte BLAKE2b hash of data.
-func Sum256(data []byte) (out [32]byte) {
-	var d digest
-	d.initialize(config256)
-	d.Write(data)
-	sum := d.checkSum()
-	copy(out[:], sum[:32])
-	return
 }

@@ -16,6 +16,12 @@ import (
 	"testing"
 )
 
+type testVector struct {
+	In  string
+	Key string
+	Out string
+}
+
 func TestXOF(t *testing.T) {
 	f, err := os.Open("testvectors/blake2xb.json")
 	if err != nil {
@@ -40,7 +46,7 @@ func TestXOF(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		config := NewXConfig(uint32(len(out)))
+		config := NewConfig(uint32(len(out)))
 		if v.Key != "" {
 			key, err := hex.DecodeString(v.Key)
 			if err != nil {
@@ -48,7 +54,7 @@ func TestXOF(t *testing.T) {
 			}
 			config.Key = key
 		}
-		x, err := NewX(config)
+		x, err := NewWithConfig(config)
 		if err != nil {
 			t.Fatalf("Error while creating blake2xb instance: %v", err)
 		}
